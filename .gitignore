@@ -1,0 +1,14 @@
+.direnv/
+dist/
+dist-newstyle/
+node_modules/
+output/
+.parcel-cache/
+.psc-ide-port
+.pulp-cache/
+result-*/
+result/
+secrets.json
+.spago/
+tmp
+*.cabal

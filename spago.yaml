@@ -1,0 +1,43 @@
+workspace:
+  # lock: true
+  package_set:
+    registry: 62.2.3
+
+package:
+  name: frontend
+  dependencies:
+    - aff
+    - aff-promise
+    - arrays
+    - bigints
+    - concur-core
+    - concur-react
+    - control
+    - effect
+    - either
+    - foldable-traversable
+    - integers
+    - maybe
+    - newtype
+    - prelude
+    - react
+    - react-dom
+    - refs
+    - strings
+    - transformers
+    - tuples
+    - web-dom
+    - web-events
+    - web-file
+    - web-html
+    - web-uievents
+  bundle:
+    minify: true
+    # Entrypoint for the bundle
+    module: Main
+    # The path of the bundle file
+    outfile: "index.js"
+    # Possible values are 'node' or 'browser'
+    platform: browser
+    # Possible values are 'app' or 'module'
+    type: "module"

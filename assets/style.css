@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+@source "../src/*.purs";
+
+* {
+  box-sizing: border-box !important;
+  --smooth-corners: 4;
+}
+
+pre {
+  white-space: pre-wrap;
+  overflow-x: auto;
+}
+
+body {
+  position: relative;
+  font-optical-sizing: auto;
+  font-family: "Source Sans Pro";
+  color: var(--color-stone-900);
+  background-color: var(--color-stone-300);
+}

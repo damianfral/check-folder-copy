@@ -1,0 +1,32 @@
+name: build-project
+on: push
+
+jobs:
+  build-package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@main
+      - uses: cachix/install-nix-action@master
+      - uses: cachix/cachix-action@master
+        with:
+          name: opensource
+          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+      - run: nix build --accept-flake-config 
+
+  build-dev-shell:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@main
+      - uses: cachix/install-nix-action@master
+      - uses: cachix/cachix-action@master
+        with:
+          name: opensource
+          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+      - run: nix build .#devShells.x86_64-linux.default --accept-flake-config
+
+  flake-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@main
+      - uses: cachix/install-nix-action@master
+      - run: nix flake check --accept-flake-config

@@ -1,7 +1,7 @@
 workspace:
   # lock: true
   package_set:
-    registry: 62.2.3
+    registry: 67.1.0
 
 package:
   name: frontend

@@ -143,8 +143,6 @@
               awscli2
               feedback.packages.${system}.default
               nil
-              nodePackages.purescript-language-server
-              nodePackages.purs-tidy
               pkgs.helix
               purs
               spago-unstable

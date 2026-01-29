@@ -44,6 +44,7 @@
         "spago.yaml"
         "spago.lock"
         "index.html"
+        "vite.config.js"
       ];
     };
   in
@@ -85,7 +86,7 @@
             tailwindcss -i ./assets/style.css -o ./tailwind.css
             chmod 777 index.html
             mkdir -p dist
-            yarn --offline run parcel build index.html
+            yarn --offline run vite build
           '';
           installPhase = ''
             mkdir -p $out
@@ -122,11 +123,14 @@
             runtimeInputs = [pkgs.awscli2];
             text = ''
               set -e
-              echo Deploying
-              aws s3 cp ${packages.frontend-compressed}/index.html.gz \
-                s3://check-folder-copy.damianfral.com/index.html \
-                --content-type text/html \
-                --content-encoding gzip
+              aws s3 cp ${packages.frontend-compressed}/index.html \
+                s3://check-folder-copy.damianfral.com/ \
+                --content-type text/html
+
+              aws s3 cp ${packages.frontend-compressed}/main.js \
+                s3://check-folder-copy.damianfral.com/ \
+                --content-type text/javascript
+
               aws s3 website s3://check-folder-copy.damianfral.com/ \
                 --index-document index.html
             '';

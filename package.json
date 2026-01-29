@@ -6,8 +6,9 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "build:parcel": "parcel build ./index.html",
-    "start:parcel": "parcel ./index.html --lazy"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "dependencies": {
     "big-integer": "^1.6.52",
@@ -17,13 +18,11 @@
     "react-swipeable": "^7.0.2"
   },
   "devDependencies": {
-    "@parcel/packager-raw-url": "2.16.3",
-    "@parcel/transformer-jsonld": "2.16.3",
     "@tailwindcss/cli": "4.1.7",
     "esbuild": "0.25.0",
-    "parcel": "^2.16.3",
     "process": "0.11.10",
     "purescript-language-server": "^0.18.5",
-    "purs-tidy": "^0.11.1"
+    "purs-tidy": "^0.11.1",
+    "vite": "^5.0.0"
   }
 }

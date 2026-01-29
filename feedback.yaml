@@ -2,10 +2,9 @@ loops:
   run:
     command: |
       set -xue
-      # rm .parcel-cache -r
       spago bundle --strict --source-maps --bundler-args '--loader:.js=jsx'
       tailwindcss -m -i assets/style.css -o tailwind.css
-      yarn start:parcel
+      yarn dev
   test:
     command: "spago test"
   

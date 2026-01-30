@@ -8,7 +8,6 @@
     pre-commit-hooks.url = "github:cachix/git-hooks.nix";
     pre-commit-hooks.inputs.nixpkgs.follows = "nixpkgs";
     feedback.url = "github:NorfairKing/feedback";
-    nix-compressify.url = "github:DeeUnderscore/nix-compressify";
     purescript-overlay.url = "github:thomashoneyman/purescript-overlay";
     purescript-overlay.inputs.nixpkgs.follows = "nixpkgs";
     mkSpagoDerivation.url = "github:jeslie0/mkSpagoDerivation";
@@ -19,7 +18,6 @@
     nixpkgs,
     flake-utils,
     nix-filter,
-    nix-compressify,
     pre-commit-hooks,
     feedback,
     ...
@@ -93,10 +91,6 @@
             cp -r -t $out/ ./dist/*
           '';
         };
-        frontend-compressed = nix-compressify.lib.${final.system}.compressify {
-          zopflifyArgs = {level = 1000;};
-          src = frontend;
-        };
       };
     }
     // flake-utils.lib.eachDefaultSystem (
@@ -123,11 +117,11 @@
             runtimeInputs = [pkgs.awscli2];
             text = ''
               set -e
-              aws s3 cp ${packages.frontend-compressed}/index.html \
+              aws s3 cp ${packages.frontend}/index.html \
                 s3://check-folder-copy.damianfral.com/ \
                 --content-type text/html
 
-              aws s3 cp ${packages.frontend-compressed}/main.js \
+              aws s3 cp ${packages.frontend}/main.js \
                 s3://check-folder-copy.damianfral.com/ \
                 --content-type text/javascript
 
@@ -135,8 +129,6 @@
                 --index-document index.html
             '';
           };
-        packages.frontend-compressed = pkgs.frontend-compressed;
-
         devShells.default = pkgs.mkShell {
           name = "esphome-dev-shell";
           packages = with pkgs;

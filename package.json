@@ -19,10 +19,10 @@
   },
   "devDependencies": {
     "@tailwindcss/cli": "4.1.7",
-    "esbuild": "0.25.3",
+    "esbuild": "0.25.4",
     "process": "0.11.10",
     "purescript-language-server": "^0.18.5",
     "purs-tidy": "^0.11.1",
-    "vite": "^5.0.0"
+    "vite": "^6.4.2"
   }
 }

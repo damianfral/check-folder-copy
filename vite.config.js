@@ -1,11 +1,13 @@
 import { defineConfig } from 'vite';
+import tailwindcss from '@tailwindcss/vite';
+
 
 export default defineConfig({
   root: './',
   build: {
     outDir: './dist',
     rollupOptions: {
-      input: { main: './index.html', },
+      input: { main: './index.html' },
       output: {
         entryFileNames: `[name].js`,
         chunkFileNames: `[name].js`,
@@ -13,14 +15,6 @@ export default defineConfig({
       },
     },
   },
-  server: {
-    port: 1234, // Using the same port as mentioned in the README
-    open: true,
-  },
-  resolve: {
-    alias: {
-      // Add any necessary aliases here
-    },
-  },
-  plugins: [],
+  server: { port: 1234, open: true, },
+  plugins: [tailwindcss()],
 });

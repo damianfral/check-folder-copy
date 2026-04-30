@@ -1,8 +1,8 @@
 {
-  description = "TBD";
+  description = "check-folder-copy - Frontend with PureScript";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/release-25.11";
     flake-utils.url = "github:numtide/flake-utils";
     nix-filter.url = "github:numtide/nix-filter";
     pre-commit-hooks.url = "github:cachix/git-hooks.nix";
@@ -11,6 +11,7 @@
     purescript-overlay.url = "github:thomashoneyman/purescript-overlay";
     purescript-overlay.inputs.nixpkgs.follows = "nixpkgs";
     mkSpagoDerivation.url = "github:jeslie0/mkSpagoDerivation";
+    bun2nix.url = "github:nix-community/bun2nix";
   };
 
   outputs = {
@@ -20,6 +21,9 @@
     nix-filter,
     pre-commit-hooks,
     feedback,
+    mkSpagoDerivation,
+    purescript-overlay,
+    bun2nix,
     ...
   } @ inputs: let
     pkgsFor = system:
@@ -34,15 +38,15 @@
     src = nix-filter.lib {
       root = ./.;
       include = [
-        "assets/"
-        "src/"
-        "test/"
+        "assets"
+        "src"
         "package.json"
         "yarn.lock"
         "spago.yaml"
         "spago.lock"
         "index.html"
         "vite.config.js"
+        "bun.lock"
       ];
     };
   in
@@ -51,46 +55,30 @@
         frontend-purs = final.mkSpagoDerivation {
           name = "check-folder-copy-purs";
           src = src;
-          nativeBuildInputs = with final; [purs-unstable spago-unstable esbuild];
-          buildPhase = ''
-            ls
-            spago build --strict
-          '';
-          installPhase = "ls -l; mkdir $out; cp -r output $out/";
+          nativeBuildInputs = with final; [purs spago esbuild];
+          buildPhase = "spago build --strict";
+          installPhase = "mkdir $out; cp -r output $out/";
         };
-        frontend = final.mkYarnPackage {
-          version = "1.0.1";
-          name = "frontend";
-          yarnLock = ./yarn.lock;
-          packageJSON = ./package.json;
-          src = src;
-          nativeBuildInputs = with final; [cacert yarn nodejs esbuild git tailwindcss_4];
-          doDist = false;
-          # unpackPhase = ''
-          # '';
-          configurePhase = ''
-            cp -r $src/* .
-            cp -r ${frontend-purs}/* .
-            ln -s $node_modules node_modules
-            export PATH=$PATH:$node_modules/.bin/
-          '';
-          buildPhase = ''
-            set -e
-            esbuild --bundle output/Main/index.js \
-              --loader:.js=jsx \
-              --preserve-symlinks \
-              --minify --format=esm \
-              --outfile=index.js
-            tailwindcss -i ./assets/style.css -o ./tailwind.css
-            chmod 777 index.html
-            mkdir -p dist
-            yarn --offline run vite build
-          '';
-          installPhase = ''
-            mkdir -p $out
-            cp -r -t $out/ ./dist/*
-          '';
-        };
+        frontend = let
+          bunNix = import ./bun.nix;
+          bunDeps = bun2nix.packages.${final.system}.default.fetchBunDeps {bunNix = bunNix;};
+        in
+          bun2nix.packages.${final.system}.default.mkDerivation {
+            pname = "check-folder-copy";
+            version = "1.0.0";
+            inherit src bunDeps;
+            nativeBuildInputs = with final; [frontend-purs git spago purs];
+            buildPhase = ''
+              set -xue
+              export PATH=$PATH:$(pwd)/node_modules/.bin
+              cp -r ${frontend-purs}/output ./output
+              bun build --minify --outfile=index.js output/Main/index.js
+              vite build
+              mkdir -p $out
+              cp -r dist/* $out/
+            '';
+            installPhase = "mkdir -p $out";
+          };
       };
     }
     // flake-utils.lib.eachDefaultSystem (
@@ -107,7 +95,7 @@
           };
         };
       in rec {
-        packages.default = packages.frontend;
+        packages.default = pkgs.frontend;
         packages.frontend-purs = pkgs.frontend-purs;
         packages.frontend = pkgs.frontend;
         packages.deploy =
@@ -120,54 +108,41 @@
               aws s3 cp ${packages.frontend}/index.html \
                 s3://check-folder-copy.damianfral.com/ \
                 --content-type text/html
-
               aws s3 cp ${packages.frontend}/main.js \
                 s3://check-folder-copy.damianfral.com/ \
                 --content-type text/javascript
-
               aws s3 website s3://check-folder-copy.damianfral.com/ \
                 --index-document index.html
             '';
           };
         devShells.default = pkgs.mkShell {
-          name = "esphome-dev-shell";
-          packages = with pkgs;
-          with pkgs.haskellPackages;
-            [
-              actionlint
-              alejandra
-              awscli2
-              feedback.packages.${system}.default
-              nil
-              pkgs.helix
-              purs
-              spago-unstable
-              statix
-              tailwindcss_4
-              tailwindcss-language-server
-              typescript-language-server
-              vscode-langservers-extracted
-              yaml-language-server
-            ]
-            ++ packages.frontend.nativeBuildInputs;
-
-          inherit (precommitCheck) shellHook;
+          name = "check-folder-copy";
+          packages = with pkgs; [
+            actionlint
+            alejandra
+            feedback.packages.${system}.default
+            nil
+            purs
+            spago
+            statix
+            tailwindcss_4
+            bun
+            bun2nix.packages.${system}.default
+          ];
+          shellHook = precommitCheck.shellHook;
         };
-
         checks = {pre-commit-check = precommitCheck;};
       }
     );
 
   nixConfig = {
     extra-substituters = [
-      "https://opensource.cachix.org"
-      "https://haskell-language-server.cachix.org"
-      "https://feedback.cachix.org"
+      "https://cache.nixos.org"
+      "https://cache.garnix.io"
     ];
     extra-trusted-public-keys = [
-      "opensource.cachix.org-1:6t9YnrHI+t4lUilDKP2sNvmFA9LCKdShfrtwPqj2vKc="
-      "haskell-language-server.cachix.org-1:juFfHrwkOxqIOZShtC4YC1uT1bBcq2RSvC7OMKx0Nz8="
-      "feedback.cachix.org-1:8PNDEJ4GTCbsFUwxVWE/ulyoBMDqqL23JA44yB0j1jI="
+      "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
+      "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g="
     ];
   };
 }
